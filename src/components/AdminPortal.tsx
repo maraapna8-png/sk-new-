@@ -528,20 +528,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-[#1B3022] flex items-center gap-1">
-                  <Lock className="w-3.5 h-3.5 text-[#C5A059]" />
-                  <span>Admin Passcode</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setPasscode('Admin@1973')}
-                  className="text-[11px] text-[#C5A059] hover:text-[#1B3022] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                >
-                  <Key className="w-3 h-3" />
-                  <span>Auto-Fill (Admin@1973)</span>
-                </button>
-              </div>
+              <label className="text-xs font-bold text-[#1B3022] flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-[#C5A059]" />
+                <span>Admin Passcode</span>
+              </label>
 
               <div className="relative">
                 <input
@@ -550,7 +540,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   id="admin-passcode-input"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Enter Admin Passcode (e.g. Admin@1973)"
+                  placeholder="Enter Admin Passcode"
                   className="w-full pl-4 pr-11 py-3.5 rounded-xl border border-[#EADFCF] bg-white text-sm text-[#1B3022] focus:outline-hidden focus:border-[#C5A059] font-mono tracking-wider shadow-2xs"
                   autoComplete="current-password"
                 />
@@ -567,10 +557,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                   )}
                 </button>
               </div>
-              <p className="text-[11px] text-[#63756A] flex items-center justify-between">
-                <span>Default Passcode: <strong className="font-mono text-[#1B3022]">Admin@1973</strong></span>
-                <span className="text-[10px] text-green-700 font-medium">✓ Netlify & Local Ready</span>
-              </p>
             </div>
 
             <button

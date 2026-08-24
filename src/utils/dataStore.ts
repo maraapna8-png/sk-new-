@@ -363,7 +363,7 @@ export async function loginAdmin(passcode: string): Promise<{ success: boolean; 
 
   return {
     success: false,
-    error: 'Incorrect passcode. Access denied. (Passcode: Admin@1973)',
+    error: 'Incorrect passcode. Access denied.',
   };
 }
 
