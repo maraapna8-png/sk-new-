@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LanguageCode } from '../types';
 import { translations } from '../utils/translations';
+import { saveManagementMessage } from '../utils/dataStore';
 import { Logo } from './Logo';
 import {
   X,
@@ -53,20 +54,16 @@ export const DirectMessageModal: React.FC<DirectMessageModalProps> = ({
       return false;
     }
 
-    // 1. Save to backend database for admin records
+    // 1. Save to backend database or localStorage for admin records
     try {
-      await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          shopkeeperName: shopkeeperName.trim(),
-          shopName: shopName.trim(),
-          phone: phone.trim() || undefined,
-          message: message.trim(),
-        }),
+      await saveManagementMessage({
+        shopkeeperName: shopkeeperName.trim(),
+        shopName: shopName.trim(),
+        phone: phone.trim() || undefined,
+        message: message.trim(),
       });
     } catch (e) {
-      console.warn('Failed to save message to server, proceeding to WhatsApp', e);
+      console.warn('Failed to save message, proceeding to WhatsApp', e);
     }
 
     // 2. Format WhatsApp Message for GM Muhammad Zeeshan (03449293698)

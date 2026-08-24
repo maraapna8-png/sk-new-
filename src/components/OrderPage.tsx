@@ -8,6 +8,7 @@ import {
 } from '../types';
 import { translations, PACK_CONFIGS } from '../utils/translations';
 import { OrderReviewModal } from './OrderReviewModal';
+import { placeOrder } from '../utils/dataStore';
 import {
   Minus,
   Plus,
@@ -123,29 +124,23 @@ export const OrderPage: React.FC<OrderPageProps> = ({
     setErrorMessage(null);
 
     try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName: customerName.trim(),
-          shopName: shopName.trim(),
-          mobile: mobile.trim(),
-          address: address.trim(),
-          city: city.trim(),
-          notes: notes.trim() || undefined,
-          items: quantities,
-          paymentMethod,
-        }),
+      const result = await placeOrder({
+        customerName: customerName.trim(),
+        shopName: shopName.trim(),
+        mobile: mobile.trim(),
+        address: address.trim(),
+        city: city.trim(),
+        notes: notes.trim() || undefined,
+        items: quantities,
+        paymentMethod,
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to place order. Please try again.');
+      if (!result.success || !result.order) {
+        throw new Error(result.error || 'Failed to place order. Please try again.');
       }
 
       setIsReviewOpen(false);
-      onOrderSuccess(data.order);
+      onOrderSuccess(result.order);
     } catch (err: any) {
       setErrorMessage(err.message || 'Network error occurred. Please check connection and retry.');
     } finally {

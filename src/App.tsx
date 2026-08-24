@@ -22,6 +22,7 @@ import { PrintableBill } from './components/PrintableBill';
 import { OrderConfirmation } from './components/OrderConfirmation';
 import { AdminPortal } from './components/AdminPortal';
 import { Logo } from './components/Logo';
+import { fetchAllOrders } from './utils/dataStore';
 import {
   Phone,
   MessageSquare,
@@ -81,22 +82,19 @@ export function App() {
   // Direct WhatsApp Modal State
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
-  // Load initial orders from server
+  // Load initial orders from server / local storage
   useEffect(() => {
-    const fetchInitialOrders = async () => {
+    const loadInitialOrders = async () => {
       try {
-        const res = await fetch('/api/orders');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.orders && Array.isArray(data.orders)) {
-            setOrderHistory(data.orders);
-          }
+        const orders = await fetchAllOrders();
+        if (orders && Array.isArray(orders)) {
+          setOrderHistory(orders);
         }
       } catch (e) {
-        console.warn('Could not load orders from API', e);
+        console.warn('Could not load orders', e);
       }
     };
-    fetchInitialOrders();
+    loadInitialOrders();
   }, []);
 
   // Update pack quantity helpers

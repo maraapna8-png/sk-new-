@@ -2,12 +2,26 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Order, OrderStatus, Customer, ManagementMessage, AdminStats } from '../types';
 import { Logo } from './Logo';
 import {
+  loginAdmin,
+  verifyAdminToken,
+  logoutAdmin,
+  fetchAllOrders,
+  fetchAllCustomers,
+  fetchAllMessages,
+  computeStats,
+  updateOrderStatus,
+  deleteOrder,
+  DEFAULT_ADMIN_PASSCODE,
+} from '../utils/dataStore';
+import {
   ShieldCheck,
   Lock,
   LogOut,
   Search,
   Filter,
   Eye,
+  EyeOff,
+  Key,
   CheckCircle,
   Clock,
   Truck,
@@ -301,6 +315,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('sk_admin_token'));
   const [passcode, setPasscode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -332,11 +347,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // 1. Verify token on mount or login
   const checkTokenValidity = async (t: string) => {
     try {
-      const res = await fetch('/api/auth/verify', {
-        headers: { Authorization: `Bearer ${t}` },
-      });
-      const data = await res.json();
-      if (!data.valid) {
+      const isValid = await verifyAdminToken(t);
+      if (!isValid) {
         handleLogout();
       } else {
         loadAllAdminData(t);
@@ -358,22 +370,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     setIsLoggingIn(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode: passcode.trim() }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Authentication failed');
+      const result = await loginAdmin(passcode);
+      if (!result.success || !result.token) {
+        throw new Error(result.error || 'Authentication failed');
       }
 
-      setToken(data.token);
-      localStorage.setItem('sk_admin_token', data.token);
+      setToken(result.token);
       setPasscode('');
-      loadAllAdminData(data.token);
+      await loadAllAdminData(result.token);
     } catch (err: any) {
       setLoginError(err.message || 'Incorrect passcode. Access denied.');
     } finally {
@@ -382,8 +386,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   };
 
   const handleLogout = () => {
+    logoutAdmin();
     setToken(null);
-    localStorage.removeItem('sk_admin_token');
     setStats(null);
     setOrders([]);
     setCustomers([]);
@@ -393,31 +397,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const loadAllAdminData = async (authToken: string) => {
     setIsLoadingData(true);
     try {
-      const headers = { Authorization: `Bearer ${authToken}` };
-
-      const [statsRes, ordersRes, custRes, msgRes] = await Promise.all([
-        fetch('/api/admin/stats', { headers }),
-        fetch('/api/admin/orders', { headers }),
-        fetch('/api/admin/customers', { headers }),
-        fetch('/api/admin/messages', { headers }),
+      const [fetchedOrders, fetchedCustomers, fetchedMessages] = await Promise.all([
+        fetchAllOrders(authToken),
+        fetchAllCustomers(authToken),
+        fetchAllMessages(authToken),
       ]);
 
-      if (statsRes.ok) {
-        const s = await statsRes.json();
-        setStats(s);
-      }
-      if (ordersRes.ok) {
-        const o = await ordersRes.json();
-        setOrders(o.orders || []);
-      }
-      if (custRes.ok) {
-        const c = await custRes.json();
-        setCustomers(c.customers || []);
-      }
-      if (msgRes.ok) {
-        const m = await msgRes.json();
-        setMessages(m.messages || []);
-      }
+      setOrders(fetchedOrders);
+      setCustomers(fetchedCustomers);
+      setMessages(fetchedMessages);
+      setStats(computeStats(fetchedOrders, fetchedCustomers));
     } catch (e) {
       console.error('Failed to fetch admin data', e);
     } finally {
@@ -430,22 +419,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     setStatusUpdatingId(orderId);
 
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? data.order : o))
-        );
+      const result = await updateOrderStatus(orderId, newStatus, token);
+      if (result.success && result.order) {
+        const updated = result.order;
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? updated : o)));
         if (selectedOrderDetails?.id === orderId) {
-          setSelectedOrderDetails(data.order);
+          setSelectedOrderDetails(updated);
         }
         // Refresh stats
         loadAllAdminData(token);
@@ -463,14 +442,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     setIsDeleting(true);
 
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
+      const success = await deleteOrder(orderId, token);
+      if (success) {
         setOrders((prev) => prev.filter((o) => o.id !== orderId));
         setDeleteToast({
           message: `Order ${orderId} has been deleted successfully.`,
@@ -482,8 +455,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         setOrderToDelete(null);
         loadAllAdminData(token);
       } else {
-        const data = await res.json();
-        alert(data.error || 'Failed to delete order.');
+        alert('Failed to delete order.');
       }
     } catch (e) {
       console.error('Delete order failed', e);
@@ -556,19 +528,49 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#1B3022] flex items-center gap-1">
-                <Lock className="w-3.5 h-3.5 text-[#C5A059]" />
-                <span>Admin Passcode</span>
-              </label>
-              <input
-                type="password"
-                required
-                id="admin-passcode-input"
-                value={passcode}
-                onChange={(e) => setPasscode(e.target.value)}
-                placeholder="Enter Admin Passcode"
-                className="w-full px-4 py-3.5 rounded-xl border border-[#EADFCF] bg-white text-sm text-[#1B3022] focus:outline-hidden focus:border-[#C5A059] font-mono tracking-wider shadow-2xs"
-              />
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-[#1B3022] flex items-center gap-1">
+                  <Lock className="w-3.5 h-3.5 text-[#C5A059]" />
+                  <span>Admin Passcode</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setPasscode('Admin@1973')}
+                  className="text-[11px] text-[#C5A059] hover:text-[#1B3022] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                >
+                  <Key className="w-3 h-3" />
+                  <span>Auto-Fill (Admin@1973)</span>
+                </button>
+              </div>
+
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  id="admin-passcode-input"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  placeholder="Enter Admin Passcode (e.g. Admin@1973)"
+                  className="w-full pl-4 pr-11 py-3.5 rounded-xl border border-[#EADFCF] bg-white text-sm text-[#1B3022] focus:outline-hidden focus:border-[#C5A059] font-mono tracking-wider shadow-2xs"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#63756A] hover:text-[#1B3022] cursor-pointer transition-colors"
+                  title={showPassword ? 'Hide Passcode' : 'Show Passcode'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+              <p className="text-[11px] text-[#63756A] flex items-center justify-between">
+                <span>Default Passcode: <strong className="font-mono text-[#1B3022]">Admin@1973</strong></span>
+                <span className="text-[10px] text-green-700 font-medium">✓ Netlify & Local Ready</span>
+              </p>
             </div>
 
             <button

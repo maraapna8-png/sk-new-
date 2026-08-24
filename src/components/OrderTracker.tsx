@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Order, OrderStatus, LanguageCode } from '../types';
 import { translations } from '../utils/translations';
+import { findOrderByIdOrPhone } from '../utils/dataStore';
 import {
   Search,
   CheckCircle,
@@ -47,14 +48,13 @@ export const OrderTracker: React.FC<OrderTrackerProps> = ({
     setErrorMessage(null);
 
     try {
-      const res = await fetch(`/api/orders/${encodeURIComponent(cleanId)}`);
-      const data = await res.json();
+      const foundOrder = await findOrderByIdOrPhone(cleanId);
 
-      if (!res.ok || !data.order) {
+      if (!foundOrder) {
         throw new Error(t.notFoundAlert);
       }
 
-      setOrder(data.order);
+      setOrder(foundOrder);
     } catch (err: any) {
       setOrder(null);
       setErrorMessage(err.message || t.notFoundAlert);
