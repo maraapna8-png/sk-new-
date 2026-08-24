@@ -1,6 +1,7 @@
 import React from 'react';
 import { LanguageCode } from '../types';
 import { translations } from '../utils/translations';
+import heroTeaImage from '../assets/images/sk_tea_hero_1787567837494.jpg';
 import {
   ShoppingBag,
   Phone,
@@ -158,10 +159,16 @@ export const Hero: React.FC<HeroProps> = ({
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white">
                 <img
                   id="hero-commercial-tea-image"
-                  src="/src/assets/images/sk_tea_hero_1787567837494.jpg"
+                  src={heroTeaImage}
                   alt="SK Tea Company Premium Milk Tea Cup with Cardamom and Lush Tea Leaves"
                   className="w-full h-80 sm:h-96 lg:h-[430px] object-cover object-center transform hover:scale-105 transition-transform duration-700 ease-out"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== '/hero-image.jpg' && !target.src.endsWith('/hero-image.jpg')) {
+                      target.src = '/hero-image.jpg';
+                    }
+                  }}
                 />
 
                 {/* Overlay Badge Bottom */}

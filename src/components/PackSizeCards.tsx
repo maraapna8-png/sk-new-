@@ -1,6 +1,7 @@
 import React from 'react';
 import { LanguageCode, OrderItemQuantities, PackSizeKey } from '../types';
 import { PACK_CONFIGS, translations } from '../utils/translations';
+import packTeaImage from '../assets/images/sk_tea_pack_1787567858442.jpg';
 import { Minus, Plus, ShoppingBag, Check, Scale } from 'lucide-react';
 
 interface PackSizeCardsProps {
@@ -83,10 +84,16 @@ export const PackSizeCards: React.FC<PackSizeCardsProps> = ({
                 <div className="p-5 pb-3">
                   <div className="relative rounded-2xl overflow-hidden bg-[#FDFBF7] border border-[#EADFCF] h-48 flex items-center justify-center p-3">
                     <img
-                      src="/src/assets/images/sk_tea_pack_1787567858442.jpg"
+                      src={packTeaImage}
                       alt={`SK Tea ${pack.label}`}
                       className="max-h-full object-contain transform hover:scale-105 transition-transform duration-300"
                       referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (target.src !== '/pack-image.jpg' && !target.src.endsWith('/pack-image.jpg')) {
+                          target.src = '/pack-image.jpg';
+                        }
+                      }}
                     />
                     <div className="absolute bottom-2 left-2 bg-[#1B3022]/90 backdrop-blur-xs text-[#EAD59A] text-[11px] font-bold px-2 py-0.5 rounded-md">
                       {pack.weightInKg} KG / pack
