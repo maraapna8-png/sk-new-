@@ -1,0 +1,6 @@
+{
+  "name": "SK Tea Company",
+  "description": "Premium tea company website and online ordering system for customers and shopkeepers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
