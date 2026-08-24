@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Order, OrderStatus, Customer, ManagementMessage, AdminStats } from '../types';
 import { Logo } from './Logo';
 import {
@@ -26,12 +26,274 @@ import {
   TrendingUp,
   AlertCircle,
   FileText,
+  Trash2,
+  ArrowRight,
+  Check,
 } from 'lucide-react';
 
 interface AdminPortalProps {
   onViewBill: (order: Order) => void;
   onExitAdmin: () => void;
 }
+
+interface SwipeableOrderRowProps {
+  ord: Order;
+  isUpdating: boolean;
+  onUpdateStatus: (orderId: string, status: OrderStatus) => void;
+  onViewBill: (order: Order) => void;
+  onDirectDelete: (orderId: string) => void;
+  onDeleteRequest: (order: Order) => void;
+}
+
+const SwipeableOrderRow: React.FC<SwipeableOrderRowProps> = ({
+  ord,
+  isUpdating,
+  onUpdateStatus,
+  onViewBill,
+  onDirectDelete,
+  onDeleteRequest,
+}) => {
+  const [swipeX, setSwipeX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startXRef = useRef(0);
+  const startYRef = useRef(0);
+  const isHorizontalGesture = useRef(false);
+
+  const THRESHOLD = 90;
+
+  // Touch event handlers (Mobile / Tablets)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startXRef.current = e.touches[0].clientX;
+    startYRef.current = e.touches[0].clientY;
+    isHorizontalGesture.current = false;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const diffX = e.touches[0].clientX - startXRef.current;
+    const diffY = e.touches[0].clientY - startYRef.current;
+
+    if (!isHorizontalGesture.current) {
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 6) {
+        isHorizontalGesture.current = true;
+      } else if (Math.abs(diffY) > 8) {
+        setIsDragging(false);
+        setSwipeX(0);
+        return;
+      }
+    }
+
+    if (isHorizontalGesture.current && diffX > 0) {
+      setSwipeX(Math.min(diffX, 240));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (swipeX >= THRESHOLD) {
+      onDirectDelete(ord.id);
+    }
+    setSwipeX(0);
+    isHorizontalGesture.current = false;
+  };
+
+  // Pointer / Mouse drag handlers (Desktop)
+  const handlePointerDown = (e: React.PointerEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('select') || target.closest('a')) {
+      return;
+    }
+    startXRef.current = e.clientX;
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging) return;
+    const diffX = e.clientX - startXRef.current;
+    if (diffX > 0) {
+      setSwipeX(Math.min(diffX, 240));
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (swipeX >= THRESHOLD) {
+      onDirectDelete(ord.id);
+    }
+    setSwipeX(0);
+  };
+
+  const handlePointerCancel = () => {
+    setIsDragging(false);
+    setSwipeX(0);
+  };
+
+  return (
+    <tr
+      className="relative group select-none transition-colors"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+    >
+      {/* Background delete drawer revealed when scrolling / swiping left to right */}
+      {swipeX > 0 && (
+        <td
+          colSpan={8}
+          className="absolute inset-0 z-0 p-0 overflow-hidden bg-gradient-to-r from-red-600 via-rose-600 to-red-700 pointer-events-none"
+        >
+          <div className="h-full flex items-center px-4 gap-3 text-white">
+            <div className={`p-2 rounded-xl bg-white/25 transition-transform ${swipeX >= THRESHOLD ? 'scale-110' : ''}`}>
+              <Trash2 className="w-5 h-5 text-white animate-pulse" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-extrabold text-xs tracking-wider uppercase flex items-center gap-1.5">
+                {swipeX >= THRESHOLD ? '🗑️ Release to Delete Order' : '👉 Slide right to delete'}
+              </span>
+              <span className="text-[10px] text-white/85">
+                {swipeX >= THRESHOLD ? `Delete order ${ord.id}` : `${Math.round((swipeX / THRESHOLD) * 100)}% to delete threshold`}
+              </span>
+            </div>
+          </div>
+        </td>
+      )}
+
+      {/* Foreground contents */}
+      <td
+        className="py-3 px-4 font-display font-extrabold text-[#0F2A1E] relative z-10 bg-white group-hover:bg-[#FAF8F5]/90 transition-colors"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-[#C69B3D] text-xs opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline" title="Drag row right to delete">
+            ⠿
+          </span>
+          <div>
+            {ord.id}
+            <div className="text-[10px] text-[#718096] font-sans">
+              {new Date(ord.createdAt).toLocaleDateString()}
+            </div>
+          </div>
+        </div>
+      </td>
+
+      <td
+        className="py-3 px-4 relative z-10 bg-white group-hover:bg-[#FAF8F5]/90 transition-colors"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
+        <div className="font-extrabold text-[#1A3D2F]">{ord.shopName}</div>
+        <div className="text-[#5C6B64]">{ord.customerName} &bull; {ord.mobile}</div>
+      </td>
+
+      <td
+        className="py-3 px-4 font-medium text-[#0F2A1E] relative z-10 bg-white group-hover:bg-[#FAF8F5]/90 transition-colors"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
+        {ord.city}
+      </td>
+
+      <td
+        className="py-3 px-4 font-extrabold text-sm text-[#1A3D2F] relative z-10 bg-white group-hover:bg-[#FAF8F5]/90 transition-colors"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
+        {ord.totalKg} KG
+      </td>
+
+      <td
+        className="py-3 px-4 text-[11px] text-[#5C6B64] relative z-10 bg-white group-hover:bg-[#FAF8F5]/90 transition-colors"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
+        125g: {ord.items['125g']} | 250g: {ord.items['250g']}<br />
+        500g: {ord.items['500g']} | 1KG: {ord.items['1kg']}
+      </td>
+
+      <td
+        className="py-3 px-4 relative z-10 bg-white group-hover:bg-[#FAF8F5]/90 transition-colors"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
+        <span className="font-bold text-[#0F2A1E]">
+          {ord.paymentMethod}
+        </span>
+      </td>
+
+      <td
+        className="py-3 px-4 relative z-10 bg-white group-hover:bg-[#FAF8F5]/90 transition-colors"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
+        <select
+          value={ord.status}
+          disabled={isUpdating}
+          onChange={(e) =>
+            onUpdateStatus(ord.id, e.target.value as OrderStatus)
+          }
+          className={`px-2.5 py-1 rounded-lg text-xs font-bold border focus:outline-hidden ${
+            ord.status === 'Delivered'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+              : ord.status === 'Cancelled'
+              ? 'bg-rose-50 text-rose-800 border-rose-300'
+              : 'bg-[#FAF8F5] text-[#1A3D2F] border-[#C69B3D]'
+          }`}
+        >
+          <option value="New">New</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Processing">Processing</option>
+          <option value="Out for Delivery">Out for Delivery</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </td>
+
+      <td
+        className="py-3 px-4 text-right space-x-1.5 relative z-10 bg-white group-hover:bg-[#FAF8F5]/90 transition-colors"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+        }}
+      >
+        <button
+          onClick={() => onViewBill(ord)}
+          className="px-3 py-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#E7DFD5] text-[#1A3D2F] font-bold text-xs border border-[#D8CBBF] shadow-2xs cursor-pointer transition-colors"
+          title="View & Print Bill"
+        >
+          Bill
+        </button>
+
+        <button
+          onClick={() => onDeleteRequest(ord)}
+          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-200 transition-colors cursor-pointer"
+          title="Delete Order (or swipe row left-to-right)"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </td>
+    </tr>
+  );
+};
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({
   onViewBill,
@@ -61,6 +323,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   // Customer Filter
   const [customerSearch, setCustomerSearch] = useState('');
+
+  // Delete State
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteToast, setDeleteToast] = useState<{ message: string; orderId: string } | null>(null);
 
   // 1. Verify token on mount or login
   const checkTokenValidity = async (t: string) => {
@@ -190,6 +457,42 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }
   };
 
+  // Delete Order Handler
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!token) return;
+    setIsDeleting(true);
+
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.ok) {
+        setOrders((prev) => prev.filter((o) => o.id !== orderId));
+        setDeleteToast({
+          message: `Order ${orderId} has been deleted successfully.`,
+          orderId,
+        });
+        setTimeout(() => {
+          setDeleteToast(null);
+        }, 4000);
+        setOrderToDelete(null);
+        loadAllAdminData(token);
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete order.');
+      }
+    } catch (e) {
+      console.error('Delete order failed', e);
+      alert('Network error while deleting order.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Filtered orders list
   const filteredOrders = orders.filter((o) => {
     const q = orderSearch.toLowerCase();
@@ -221,22 +524,22 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // 1. If not authenticated, show secure login
   if (!token) {
     return (
-      <div id="admin-login-screen" className="min-h-screen bg-[#0F2A1E] flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl border border-[#C69B3D]/30 space-y-6 relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-[#1A3D2F] via-[#C69B3D] to-[#1A3D2F]"></div>
+      <div id="admin-login-screen" className="min-h-screen bg-[#1B3022] flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-8 shadow-2xl border border-[#C5A059]/40 space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-3 bg-gradient-to-r from-[#1B3022] via-[#C5A059] to-[#1B3022]"></div>
 
           <div className="text-center space-y-2">
             <div className="flex justify-center">
               <Logo variant="dark" size="md" />
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1A3D2F]/10 text-[#1A3D2F] text-xs font-bold uppercase tracking-wider mt-3">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#C69B3D]" />
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#1B3022]/10 text-[#1B3022] text-xs font-bold uppercase tracking-wider mt-3">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#C5A059]" />
               Secure Admin Gateway
             </div>
-            <h2 className="text-2xl font-display font-extrabold text-[#0F2A1E]">
+            <h2 className="text-2xl font-display font-extrabold text-[#1B3022]">
               Management Portal
             </h2>
-            <p className="text-xs text-[#718096]">
+            <p className="text-xs text-[#63756A]">
               Enter authorized passcode to manage orders, stock weights, and customers.
             </p>
           </div>
@@ -253,8 +556,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-[#0F2A1E] flex items-center gap-1">
-                <Lock className="w-3.5 h-3.5 text-[#C69B3D]" />
+              <label className="text-xs font-bold text-[#1B3022] flex items-center gap-1">
+                <Lock className="w-3.5 h-3.5 text-[#C5A059]" />
                 <span>Admin Passcode</span>
               </label>
               <input
@@ -263,8 +566,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 id="admin-passcode-input"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
-                placeholder="Enter Passcode (Admin@1973)"
-                className="w-full px-4 py-3.5 rounded-xl border border-[#D8CBBF] text-sm text-[#0F2A1E] focus:outline-hidden focus:border-[#1A3D2F] font-mono tracking-wider"
+                placeholder="Enter Admin Passcode"
+                className="w-full px-4 py-3.5 rounded-xl border border-[#EADFCF] bg-white text-sm text-[#1B3022] focus:outline-hidden focus:border-[#C5A059] font-mono tracking-wider shadow-2xs"
               />
             </div>
 
@@ -272,24 +575,24 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               type="submit"
               id="admin-login-submit-btn"
               disabled={isLoggingIn || !passcode.trim()}
-              className="w-full py-3.5 rounded-xl bg-[#1A3D2F] hover:bg-[#122D22] text-white font-extrabold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              className="w-full py-3.5 rounded-xl bg-[#1B3022] hover:bg-[#122218] text-[#FDFBF7] font-extrabold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer border border-[#C5A059]/40 active:scale-98"
             >
               {isLoggingIn ? (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
               ) : (
                 <>
-                  <ShieldCheck className="w-4 h-4 text-[#E5C158]" />
+                  <ShieldCheck className="w-4 h-4 text-[#EAD59A]" />
                   <span>Verify & Unlock Portal</span>
                 </>
               )}
             </button>
           </form>
 
-          <div className="pt-4 border-t border-[#E7DFD5] flex items-center justify-between text-xs text-[#718096]">
-            <span>Authorized: Muhammad Azam & Zeeshan</span>
+          <div className="pt-4 border-t border-[#EADFCF] flex items-center justify-between text-xs text-[#63756A]">
+            <span>Authorized: Management Only</span>
             <button
               onClick={onExitAdmin}
-              className="font-bold text-[#1A3D2F] hover:underline"
+              className="font-bold text-[#1B3022] hover:text-[#C5A059] hover:underline cursor-pointer transition-colors"
             >
               Back to Website
             </button>
@@ -568,6 +871,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               </div>
             </div>
 
+            {/* Helpful Gesture Tip Banner */}
+            <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-xs text-[#1B3022]">
+              <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-900 shrink-0">
+                <Trash2 className="w-4 h-4 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <span className="font-bold text-amber-950">Scroll / Swipe from Left to Right:</span>{' '}
+                <span className="text-[#4A5568]">
+                  Drag or swipe any order row from left to right to delete it, or use the red delete button.
+                </span>
+              </div>
+            </div>
+
             {/* Orders Table */}
             <div className="bg-white rounded-3xl border border-[#E7DFD5] shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
@@ -585,78 +901,25 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#F3EFEA]">
-                    {filteredOrders.map((ord) => {
-                      const isUpdating = statusUpdatingId === ord.id;
-
-                      return (
-                        <tr key={ord.id} className="hover:bg-[#FAF8F5]/80 transition-colors">
-                          <td className="py-3 px-4 font-display font-extrabold text-[#0F2A1E]">
-                            {ord.id}
-                            <div className="text-[10px] text-[#718096] font-sans">
-                              {new Date(ord.createdAt).toLocaleDateString()}
-                            </div>
-                          </td>
-
-                          <td className="py-3 px-4">
-                            <div className="font-extrabold text-[#1A3D2F]">{ord.shopName}</div>
-                            <div className="text-[#5C6B64]">{ord.customerName} &bull; {ord.mobile}</div>
-                          </td>
-
-                          <td className="py-3 px-4 font-medium text-[#0F2A1E]">
-                            {ord.city}
-                          </td>
-
-                          <td className="py-3 px-4 font-extrabold text-sm text-[#1A3D2F]">
-                            {ord.totalKg} KG
-                          </td>
-
-                          <td className="py-3 px-4 text-[11px] text-[#5C6B64]">
-                            125g: {ord.items['125g']} | 250g: {ord.items['250g']}<br />
-                            500g: {ord.items['500g']} | 1KG: {ord.items['1kg']}
-                          </td>
-
-                          <td className="py-3 px-4">
-                            <span className="font-bold text-[#0F2A1E]">
-                              {ord.paymentMethod}
-                            </span>
-                          </td>
-
-                          <td className="py-3 px-4">
-                            <select
-                              value={ord.status}
-                              disabled={isUpdating}
-                              onChange={(e) =>
-                                handleUpdateOrderStatus(ord.id, e.target.value as OrderStatus)
-                              }
-                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border focus:outline-hidden ${
-                                ord.status === 'Delivered'
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                  : ord.status === 'Cancelled'
-                                  ? 'bg-rose-50 text-rose-800 border-rose-300'
-                                  : 'bg-[#FAF8F5] text-[#1A3D2F] border-[#C69B3D]'
-                              }`}
-                            >
-                              <option value="New">New</option>
-                              <option value="Confirmed">Confirmed</option>
-                              <option value="Processing">Processing</option>
-                              <option value="Out for Delivery">Out for Delivery</option>
-                              <option value="Delivered">Delivered</option>
-                              <option value="Cancelled">Cancelled</option>
-                            </select>
-                          </td>
-
-                          <td className="py-3 px-4 text-right space-x-1.5">
-                            <button
-                              onClick={() => onViewBill(ord)}
-                              className="px-3 py-1.5 rounded-lg bg-[#FAF8F5] hover:bg-[#E7DFD5] text-[#1A3D2F] font-bold text-xs border border-[#D8CBBF] shadow-2xs"
-                              title="View & Print Bill"
-                            >
-                              Bill
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {filteredOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center text-xs text-[#718096]">
+                          No orders found matching the filter criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredOrders.map((ord) => (
+                        <SwipeableOrderRow
+                          key={ord.id}
+                          ord={ord}
+                          isUpdating={statusUpdatingId === ord.id}
+                          onUpdateStatus={handleUpdateOrderStatus}
+                          onViewBill={onViewBill}
+                          onDirectDelete={(orderId) => handleDeleteOrder(orderId)}
+                          onDeleteRequest={(targetOrder) => setOrderToDelete(targetOrder)}
+                        />
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -792,6 +1055,106 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         )}
 
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {orderToDelete && (
+        <div
+          id="delete-order-modal-backdrop"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
+        >
+          <div
+            id="delete-order-modal-card"
+            className="w-full max-w-md bg-[#FDFBF7] rounded-3xl p-6 shadow-2xl border border-red-200 space-y-5 animate-in zoom-in-95 duration-150"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-2xl bg-red-100 text-red-600 shrink-0">
+                <Trash2 className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-display font-extrabold text-[#1B3022]">
+                  Delete Order {orderToDelete.id}?
+                </h3>
+                <p className="text-xs text-[#63756A]">
+                  Are you sure you want to permanently delete this order? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            {/* Order summary box */}
+            <div className="p-4 rounded-2xl bg-white border border-[#EADFCF] text-xs space-y-1.5 shadow-2xs">
+              <div className="flex justify-between">
+                <span className="text-[#63756A]">Shop Name:</span>
+                <span className="font-bold text-[#1B3022]">{orderToDelete.shopName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#63756A]">Customer:</span>
+                <span className="font-bold text-[#1B3022]">{orderToDelete.customerName} ({orderToDelete.city})</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#63756A]">Total Weight:</span>
+                <span className="font-extrabold text-[#1B3022]">{orderToDelete.totalKg} KG</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#63756A]">Payment & Status:</span>
+                <span className="font-bold text-[#1B3022]">{orderToDelete.paymentMethod} &bull; {orderToDelete.status}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setOrderToDelete(null)}
+                disabled={isDeleting}
+                className="px-5 py-2.5 rounded-xl border border-[#EADFCF] bg-white hover:bg-[#FAF5EC] text-xs font-bold text-[#1B3022] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDeleteOrder(orderToDelete.id)}
+                disabled={isDeleting}
+                className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 active:scale-98"
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Yes, Delete Order</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Delete Toast Notification */}
+      {deleteToast && (
+        <div
+          id="delete-toast-notification"
+          className="fixed bottom-6 right-6 z-50 max-w-sm bg-[#1B3022] text-[#FDFBF7] px-4 py-3 rounded-2xl shadow-xl border border-[#C5A059]/40 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200"
+        >
+          <div className="p-1.5 rounded-xl bg-red-600/30 text-red-400">
+            <Trash2 className="w-4 h-4" />
+          </div>
+          <div className="flex-1 text-xs">
+            <p className="font-bold">{deleteToast.message}</p>
+          </div>
+          <button
+            onClick={() => setDeleteToast(null)}
+            className="text-white/60 hover:text-white text-xs font-bold px-1.5 py-1"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
     </div>
   );
 };

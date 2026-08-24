@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Logo } from './Logo';
 import { LanguageCode } from '../types';
 import { translations } from '../utils/translations';
@@ -15,31 +15,52 @@ import {
   ShieldCheck,
   Globe,
   Sparkles,
+  Check,
 } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
+  onNavigate?: (tab: any) => void;
   language: LanguageCode;
-  setLanguage: (lang: LanguageCode) => void;
-  totalPacksCount: number;
-  totalKg: number;
-  onOpenOrder: () => void;
+  setLanguage?: (lang: LanguageCode) => void;
+  onLanguageChange?: (lang: LanguageCode) => void;
+  totalPacksCount?: number;
+  totalKg?: number;
+  onOpenOrder?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  activeTab,
+  activeTab = 'home',
   setActiveTab,
+  onNavigate,
   language,
   setLanguage,
-  totalPacksCount,
-  totalKg,
+  onLanguageChange,
+  totalPacksCount = 0,
+  totalKg = 0,
   onOpenOrder,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const t = translations[language];
+  const t = translations[language] || translations['roman-english'];
+
+  // Handle outside clicks to close language dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setLangDropdownOpen(false);
+      }
+    };
+    if (langDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [langDropdownOpen]);
 
   const navItems = [
     { id: 'home', label: t.navHome, icon: Home },
@@ -52,9 +73,33 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   const handleNavClick = (tabId: string) => {
-    setActiveTab(tabId);
+    if (onNavigate) {
+      onNavigate(tabId);
+    } else if (setActiveTab) {
+      setActiveTab(tabId);
+    }
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSelectLanguage = (l: LanguageCode) => {
+    if (setLanguage) {
+      setLanguage(l);
+    }
+    if (onLanguageChange) {
+      onLanguageChange(l);
+    }
+    setLangDropdownOpen(false);
+  };
+
+  const handleOrderClick = () => {
+    if (onOpenOrder) {
+      onOpenOrder();
+    } else if (onNavigate) {
+      onNavigate('order');
+    } else if (setActiveTab) {
+      setActiveTab('order');
+    }
   };
 
   const languageLabels: Record<LanguageCode, { label: string; badge: string }> = {
@@ -62,6 +107,8 @@ export const Header: React.FC<HeaderProps> = ({
     'roman-english': { label: 'Roman Urdu', badge: 'RU' },
     'urdu': { label: 'اردو', badge: 'UR' },
   };
+
+  const currentLangMeta = languageLabels[language] || languageLabels['roman-english'];
 
   return (
     <header
@@ -86,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => handleNavClick('admin')}
               id="header-admin-link"
-              className="inline-flex items-center gap-1 text-[#EAD59A] hover:text-white transition-colors font-medium px-2.5 py-0.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/10"
+              className="inline-flex items-center gap-1 text-[#EAD59A] hover:text-white transition-colors font-medium px-2.5 py-0.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/10 cursor-pointer"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-[#C5A059]" />
               <span>{t.navAdmin}</span>
@@ -120,7 +167,7 @@ export const Header: React.FC<HeaderProps> = ({
                   key={item.id}
                   id={`nav-link-${item.id}`}
                   onClick={() => handleNavClick(item.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
                     isActive
                       ? 'bg-[#1B3022] text-[#FDFBF7] shadow-xs'
                       : 'text-[#2C3E35] hover:text-[#1B3022] hover:bg-white/80'
@@ -136,46 +183,53 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Actions: Language Selector + Place Order CTA */}
           <div className="flex items-center gap-3">
             {/* Language Switcher */}
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <button
+                type="button"
                 id="language-selector-btn"
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-[#EADFCF] bg-white text-[#1B3022] hover:bg-[#FAF6EE] transition-colors shadow-2xs cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-[#EADFCF] bg-white text-[#1B3022] hover:bg-[#FAF6EE] transition-colors shadow-2xs cursor-pointer active:scale-98"
                 title="Change Website Language"
               >
                 <Globe className="w-3.5 h-3.5 text-[#C5A059]" />
-                <span>{languageLabels[language].label}</span>
+                <span>{currentLangMeta.label}</span>
                 <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-[#1B3022]/10 text-[#1B3022]">
-                  {languageLabels[language].badge}
+                  {currentLangMeta.badge}
                 </span>
               </button>
 
               {langDropdownOpen && (
                 <div
                   id="language-dropdown-menu"
-                  className="absolute right-0 mt-2 w-44 rounded-2xl bg-[#FDFBF7] border border-[#EADFCF] shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                  className="absolute right-0 mt-2 w-48 rounded-2xl bg-[#FDFBF7] border border-[#EADFCF] shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
                 >
-                  <div className="px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#63756A] border-b border-[#EADFCF]">
+                  <div className="px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#63756A] border-b border-[#EADFCF] mb-1">
                     Select Language
                   </div>
-                  {(['simple-english', 'roman-english', 'urdu'] as LanguageCode[]).map((l) => (
-                    <button
-                      key={l}
-                      id={`lang-option-${l}`}
-                      onClick={() => {
-                        setLanguage(l);
-                        setLangDropdownOpen(false);
-                      }}
-                      className={`w-full text-left px-3.5 py-2 text-xs font-medium flex items-center justify-between hover:bg-[#FAF6EE] transition-colors cursor-pointer ${
-                        language === l ? 'text-[#1B3022] font-bold bg-[#FAF6EE]' : 'text-[#4A5568]'
-                      }`}
-                    >
-                      <span>{languageLabels[l].label}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EADFCF]/60 text-[#1B3022]">
-                        {languageLabels[l].badge}
-                      </span>
-                    </button>
-                  ))}
+                  {(['simple-english', 'roman-english', 'urdu'] as LanguageCode[]).map((l) => {
+                    const isCurrent = language === l;
+                    return (
+                      <button
+                        key={l}
+                        type="button"
+                        id={`lang-option-${l}`}
+                        onClick={() => handleSelectLanguage(l)}
+                        className={`w-full text-left px-3.5 py-2.5 text-xs font-medium flex items-center justify-between hover:bg-[#FAF6EE] transition-colors cursor-pointer ${
+                          isCurrent ? 'text-[#1B3022] font-bold bg-[#FAF6EE]' : 'text-[#4A5568]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {isCurrent && <Check className="w-3.5 h-3.5 text-[#C5A059]" />}
+                          <span className={isCurrent ? 'font-bold' : ''}>{languageLabels[l].label}</span>
+                        </div>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                          isCurrent ? 'bg-[#1B3022] text-[#EAD59A]' : 'bg-[#EADFCF]/60 text-[#1B3022]'
+                        }`}>
+                          {languageLabels[l].badge}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -183,12 +237,12 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Place Order CTA Button */}
             <button
               id="header-place-order-btn"
-              onClick={onOpenOrder}
+              onClick={handleOrderClick}
               className="relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs tracking-wide text-[#FDFBF7] bg-gradient-to-r from-[#1B3022] to-[#122218] border border-[#C5A059]/50 shadow-md hover:shadow-lg hover:from-[#122218] hover:to-[#0A160F] transition-all duration-200 active:scale-98 cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4 text-[#EAD59A]" />
               <span>{t.navPlaceOrder}</span>
-              {totalPacksCount > 0 && (
+              {totalKg > 0 && (
                 <span
                   id="header-cart-badge"
                   className="ml-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-[#C5A059] text-[#1B3022] shadow-xs"
@@ -215,9 +269,39 @@ export const Header: React.FC<HeaderProps> = ({
       {mobileMenuOpen && (
         <div
           id="mobile-drawer-menu"
-          className="xl:hidden border-t border-[#EADFCF] bg-[#FDFBF7] px-4 pt-3 pb-6 space-y-2 shadow-lg animate-in slide-in-from-top duration-200"
+          className="xl:hidden border-t border-[#EADFCF] bg-[#FDFBF7] px-4 pt-3 pb-6 space-y-3 shadow-lg animate-in slide-in-from-top duration-200"
         >
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          {/* Mobile Language Selector */}
+          <div className="p-3 bg-white rounded-2xl border border-[#EADFCF] space-y-2">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#63756A] flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-[#C5A059]" />
+              Select Language
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(['simple-english', 'roman-english', 'urdu'] as LanguageCode[]).map((l) => {
+                const isCurrent = language === l;
+                return (
+                  <button
+                    key={l}
+                    id={`mobile-lang-${l}`}
+                    onClick={() => {
+                      handleSelectLanguage(l);
+                    }}
+                    className={`py-2 px-2 rounded-xl text-xs font-semibold text-center transition-all cursor-pointer ${
+                      isCurrent
+                        ? 'bg-[#1B3022] text-[#EAD59A] shadow-xs font-bold'
+                        : 'bg-[#FAF6EE] text-[#1B3022] border border-[#EADFCF] hover:bg-white'
+                    }`}
+                  >
+                    <div>{languageLabels[l].label}</div>
+                    <div className="text-[10px] opacity-75">({languageLabels[l].badge})</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;

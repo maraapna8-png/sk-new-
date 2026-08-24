@@ -496,6 +496,26 @@ async function startServer() {
     });
   });
 
+  // 8b. Admin Only: Delete Order
+  app.delete('/api/admin/orders/:id', requireAdminAuth, (req, res) => {
+    const db = loadDatabase();
+    const orderId = req.params.id;
+    const orderIndex = db.orders.findIndex((o) => o.id === orderId);
+
+    if (orderIndex === -1) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const [deletedOrder] = db.orders.splice(orderIndex, 1);
+    saveDatabase(db);
+
+    res.json({
+      success: true,
+      message: `Order ${orderId} has been deleted successfully.`,
+      deletedOrder,
+    });
+  });
+
   // 9. Admin Only: Customers directory
   app.get('/api/admin/customers', requireAdminAuth, (req, res) => {
     const db = loadDatabase();

@@ -35,9 +35,29 @@ import {
 } from 'lucide-react';
 
 export function App() {
-  // Global Language
-  const [language, setLanguage] = useState<LanguageCode>('roman-english');
-  const t = translations[language];
+  // Global Language with persistence
+  const [language, setLanguage] = useState<LanguageCode>(() => {
+    try {
+      const saved = localStorage.getItem('sk_tea_language');
+      if (saved && (saved === 'simple-english' || saved === 'roman-english' || saved === 'urdu')) {
+        return saved as LanguageCode;
+      }
+    } catch (e) {
+      // Ignore
+    }
+    return 'roman-english';
+  });
+
+  const handleLanguageChange = (newLang: LanguageCode) => {
+    setLanguage(newLang);
+    try {
+      localStorage.setItem('sk_tea_language', newLang);
+    } catch (e) {
+      // Ignore
+    }
+  };
+
+  const t = translations[language] || translations['roman-english'];
 
   // Active View / Page
   const [currentView, setCurrentView] = useState<NavItemId>('home');
@@ -132,7 +152,10 @@ export function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Calculate live total KG for floating header badge
+  // Calculate live total packs and KG for floating header badge
+  const totalPacksCount =
+    quantities['125g'] + quantities['250g'] + quantities['500g'] + quantities['1kg'];
+
   const totalKg = Number(
     (
       quantities['125g'] * 0.125 +
@@ -143,7 +166,7 @@ export function App() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#1F2923] antialiased selection:bg-[#1A3D2F] selection:text-[#E5C158]">
+    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-[#1B3022] antialiased selection:bg-[#1B3022] selection:text-[#EAD59A]">
       
       {/* If inside Admin Portal, render dedicated Admin screen */}
       {currentView === 'admin' ? (
@@ -156,10 +179,14 @@ export function App() {
           {/* Main Top Header */}
           <Header
             language={language}
-            onLanguageChange={setLanguage}
+            setLanguage={handleLanguageChange}
+            onLanguageChange={handleLanguageChange}
             activeTab={currentView}
+            setActiveTab={handleNavigate}
             onNavigate={handleNavigate}
+            totalPacksCount={totalPacksCount}
             totalKg={totalKg}
+            onOpenOrder={() => handleNavigate('order')}
           />
 
           {/* Page Routing Views */}

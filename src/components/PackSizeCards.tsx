@@ -8,6 +8,7 @@ interface PackSizeCardsProps {
   quantities: OrderItemQuantities;
   onUpdateQuantity: (pack: PackSizeKey, delta: number) => void;
   onSetQuantity: (pack: PackSizeKey, count: number) => void;
+  onResetQuantities?: () => void;
   onProceedToOrder: () => void;
 }
 

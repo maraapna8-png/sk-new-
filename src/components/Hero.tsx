@@ -14,7 +14,8 @@ import {
 
 interface HeroProps {
   language: LanguageCode;
-  onPlaceOrder: () => void;
+  onPlaceOrder?: () => void;
+  onOrderClick?: () => void;
   onExplorePacks: () => void;
   onOpenMessageModal: () => void;
 }
@@ -22,10 +23,13 @@ interface HeroProps {
 export const Hero: React.FC<HeroProps> = ({
   language,
   onPlaceOrder,
+  onOrderClick,
   onExplorePacks,
   onOpenMessageModal,
 }) => {
-  const t = translations[language];
+  const t = translations[language] || translations['roman-english'];
+
+  const handleOrder = onPlaceOrder || onOrderClick;
 
   return (
     <section id="hero-section" className="relative overflow-hidden bg-gradient-to-b from-[#FDFBF7] via-[#FAF5EC] to-[#FDFBF7] py-8 sm:py-14 border-b border-[#EADFCF]">
@@ -80,7 +84,7 @@ export const Hero: React.FC<HeroProps> = ({
             <div className="flex flex-wrap items-center gap-3.5 pt-3">
               <button
                 id="hero-place-order-button"
-                onClick={onPlaceOrder}
+                onClick={handleOrder}
                 className="flex items-center justify-center gap-3 px-7 py-4 rounded-2xl bg-gradient-to-r from-[#1B3022] via-[#16291D] to-[#101D15] text-[#FDFBF7] font-bold text-base shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 border border-[#C5A059]/50 cursor-pointer"
               >
                 <ShoppingBag className="w-5 h-5 text-[#EAD59A]" />
