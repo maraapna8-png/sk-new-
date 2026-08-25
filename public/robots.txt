@@ -1,0 +1,17 @@
+# Robots.txt for SK Tea Company
+# https://skteacompany.com
+
+User-agent: *
+Allow: /
+Allow: /public/
+Allow: /images/
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /sitemap.xml
+
+# Protect internal APIs and admin routes from indexing
+Disallow: /api/
+Disallow: /admin
+
+# Sitemap reference
+Sitemap: https://skteacompany.com/sitemap.xml

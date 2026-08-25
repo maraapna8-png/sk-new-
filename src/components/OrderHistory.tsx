@@ -19,6 +19,7 @@ interface OrderHistoryProps {
   onViewBill: (order: Order) => void;
   onReorder: (order: Order) => void;
   onNavigateOrder: () => void;
+  onTrackOrder?: (orderId: string) => void;
 }
 
 export const OrderHistory: React.FC<OrderHistoryProps> = ({
@@ -27,6 +28,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({
   onViewBill,
   onReorder,
   onNavigateOrder,
+  onTrackOrder,
 }) => {
   const t = translations[language];
   const [searchTerm, setSearchTerm] = useState('');
@@ -157,11 +159,23 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5 self-start md:self-auto shrink-0">
+                  <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto shrink-0">
+                    {onTrackOrder && (
+                      <button
+                        onClick={() => onTrackOrder(order.id)}
+                        id={`history-track-${order.id}`}
+                        className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-[#C5A059]/40 bg-[#FAF8F5] hover:bg-[#FAF6EE] text-[#1A3D2F] font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+                        title="View live status and tracking"
+                      >
+                        <Search className="w-3.5 h-3.5 text-[#C5A059]" />
+                        <span>{t.navTrack || 'Track'}</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={() => onViewBill(order)}
                       id={`history-view-bill-${order.id}`}
-                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#D8CBBF] bg-[#FAF8F5] hover:bg-white text-[#1A3D2F] font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-[#D8CBBF] bg-[#FAF8F5] hover:bg-white text-[#1A3D2F] font-bold text-xs transition-colors shadow-2xs cursor-pointer"
                     >
                       <FileText className="w-3.5 h-3.5 text-[#C69B3D]" />
                       <span>{t.viewDetailsBtn}</span>
@@ -170,7 +184,7 @@ export const OrderHistory: React.FC<OrderHistoryProps> = ({
                     <button
                       onClick={() => onReorder(order)}
                       id={`history-reorder-${order.id}`}
-                      className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#1A3D2F] hover:bg-[#122D22] text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-[#1A3D2F] hover:bg-[#122D22] text-white font-bold text-xs transition-colors shadow-2xs cursor-pointer"
                       title="Add these items to your cart and place order again"
                     >
                       <RotateCcw className="w-3.5 h-3.5 text-[#E5C158]" />

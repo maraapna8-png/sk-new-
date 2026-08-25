@@ -131,9 +131,10 @@ export function App() {
   };
 
   // Navigation handlers
-  const handleNavigate = (tab: NavItemId) => {
+  const handleNavigate = (tab: NavItemId | string) => {
+    const targetTab = (tab === 'track' ? 'tracker' : tab) as NavItemId;
     setPreviousView(currentView);
-    setCurrentView(tab);
+    setCurrentView(targetTab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -292,6 +293,7 @@ export function App() {
                 onViewBill={handleViewBill}
                 onReorder={handleReorder}
                 onNavigateOrder={() => handleNavigate('order')}
+                onTrackOrder={handleTrackFromOrder}
               />
             )}
 
@@ -360,37 +362,37 @@ export function App() {
                 {/* Col 2: Navigation Links */}
                 <div className="space-y-3">
                   <h4 className="text-xs font-extrabold uppercase tracking-widest text-[#EAD59A]">
-                    Quick Navigation
+                    {t.quickLinks || 'Quick Navigation'}
                   </h4>
                   <ul className="space-y-2 text-xs text-white/80">
                     <li>
                       <button onClick={() => handleNavigate('home')} className="hover:text-[#EAD59A] transition-colors cursor-pointer">
-                        {t.home}
+                        {t.navHome}
                       </button>
                     </li>
                     <li>
                       <button onClick={() => handleNavigate('order')} className="hover:text-[#EAD59A] transition-colors cursor-pointer">
-                        {t.orderTea}
+                        {t.navOrder}
                       </button>
                     </li>
                     <li>
                       <button onClick={() => handleNavigate('tracker')} className="hover:text-[#EAD59A] transition-colors cursor-pointer">
-                        {t.trackOrder}
+                        {t.navTrack}
                       </button>
                     </li>
                     <li>
                       <button onClick={() => handleNavigate('history')} className="hover:text-[#EAD59A] transition-colors cursor-pointer">
-                        {t.orderHistory}
+                        {t.navHistory}
                       </button>
                     </li>
                     <li>
                       <button onClick={() => handleNavigate('about')} className="hover:text-[#EAD59A] transition-colors cursor-pointer">
-                        {t.aboutUs}
+                        {t.navAbout}
                       </button>
                     </li>
                     <li>
                       <button onClick={() => handleNavigate('faqs')} className="hover:text-[#EAD59A] transition-colors cursor-pointer">
-                        {t.faqs}
+                        {t.navFaqs}
                       </button>
                     </li>
                   </ul>
@@ -451,8 +453,18 @@ export function App() {
                 <div>
                   &copy; {new Date().getFullYear()} SK Tea Company. All Rights Reserved.
                 </div>
-                <div className="flex items-center gap-4 text-[11px]">
+                <div className="flex flex-wrap items-center gap-3 text-[11px]">
                   <span>Pure Quality &bull; Fresh Aroma &bull; Reliable Supply</span>
+                  <span className="text-white/30 hidden sm:inline">|</span>
+                  <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="hover:text-[#EAD59A] transition-colors">
+                    Sitemap
+                  </a>
+                  <a href="/robots.txt" target="_blank" rel="noopener noreferrer" className="hover:text-[#EAD59A] transition-colors">
+                    Robots
+                  </a>
+                  <a href="/llms.txt" target="_blank" rel="noopener noreferrer" className="hover:text-[#EAD59A] transition-colors font-mono">
+                    llms.txt
+                  </a>
                 </div>
               </div>
 

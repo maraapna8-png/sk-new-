@@ -1,0 +1,40 @@
+# SK Tea Company (اس کے ٹی کمپنی)
+
+> Premium Quality Tea Supplier & Wholesaler across Pakistan.
+> Delivering premium rich aroma, rich color, and strong taste tea for shopkeepers, hotels, restaurants, and households.
+
+## Brand Overview
+- **Name**: SK Tea Company (SK Tea Co.)
+- **Slogan**: Quality Tea, Trusted Service (معیاری چائے، قابل اعتماد سروس)
+- **Specialty**: Pure, premium quality blended CTC and Danedar tea curated for rich taste, robust aroma, and deep golden color.
+- **Languages Supported**: English, Urdu (اردو), and Roman Urdu.
+
+## Available Pack Sizes & Specifications
+- **125g Pack (0.125 KG)**: Compact trial and daily retail size for budget-conscious tea drinkers.
+- **250g Pack (0.25 KG)**: Standard household favorite size.
+- **500g Pack (0.50 KG)**: Value family pack for high-consumption households.
+- **1 KG Pack (1.00 KG)**: Wholesale bulk pack designed for tea stalls, dhabas, hotels, retailers, and high-volume shopkeepers.
+
+## Ordering & Service Details
+- **Payment Methods**: Cash on Delivery (COD) and EasyPaisa Direct Transfer.
+- **Delivery Coverage**: All cities and towns across Pakistan with direct door delivery.
+- **Order Tracking**: Real-time status lookup using Order ID format `SKT-XXXXXX` (e.g., `SKT-000101`).
+- **Official Invoice**: Instant printable computerized bill provided with every order with QR code verification.
+
+## Management & Official Contacts
+- **Owner**: Muhammad Azam
+  - Mobile: `03318701808`
+- **General Manager**: Muhammad Zeeshan
+  - Mobile: `03449293698`
+- **EasyPaisa Official Payment Number**: `03449293698` (Title: Muhammad Zeeshan)
+
+## Key Features
+- Online tea ordering portal with instant automatic KG weight calculation.
+- Live order status tracking with timeline progression (New -> Confirmed -> Processing -> Out for Delivery -> Delivered).
+- Direct WhatsApp instant order confirmation and customer inquiry routing.
+- Shopkeeper and retailer bulk discount support.
+
+## Full Documentation & Context
+For comprehensive brand history, FAQ answers, and brewing recommendations, see:
+- [Full LLM Context File](https://skteacompany.com/llms-full.txt)
+- [Website](https://skteacompany.com/)

@@ -157,9 +157,9 @@ export const OrderTracker: React.FC<OrderTrackerProps> = ({
           </form>
 
           {/* Quick suggestions */}
-          <div className="mt-3 text-xs text-[#718096] flex items-center gap-2">
+          <div className="mt-3 text-xs text-[#718096] flex items-center flex-wrap gap-2">
             <span>Sample IDs:</span>
-            {['SKT-000101', 'SKT-000102', 'SKT-000103', 'SKT-000104'].map((sample) => (
+            {['SKT-000107', 'SKT-000106', 'SKT-000105', 'SKT-000104'].map((sample) => (
               <button
                 key={sample}
                 type="button"
@@ -167,7 +167,7 @@ export const OrderTracker: React.FC<OrderTrackerProps> = ({
                   setOrderIdInput(sample);
                   fetchOrder(sample);
                 }}
-                className="text-xs font-semibold text-[#1A3D2F] hover:underline"
+                className="text-xs font-semibold text-[#1A3D2F] bg-[#FAF8F5] px-2 py-0.5 rounded-md border border-[#E7DFD5] hover:bg-[#1A3D2F] hover:text-white transition-colors cursor-pointer"
               >
                 {sample}
               </button>

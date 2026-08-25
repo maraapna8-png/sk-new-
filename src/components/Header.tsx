@@ -68,15 +68,16 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'about', label: t.navAbout, icon: Info },
     { id: 'faqs', label: t.navFaqs, icon: HelpCircle },
     { id: 'history', label: t.navHistory, icon: History },
-    { id: 'track', label: t.navTrack, icon: Search },
+    { id: 'tracker', label: t.navTrack, icon: Search },
     { id: 'contact', label: t.navContact, icon: Phone },
   ];
 
   const handleNavClick = (tabId: string) => {
+    const target = tabId === 'track' ? 'tracker' : tabId;
     if (onNavigate) {
-      onNavigate(tabId);
+      onNavigate(target);
     } else if (setActiveTab) {
-      setActiveTab(tabId);
+      setActiveTab(target);
     }
     setMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
