@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 
 export function App() {
-  // Global Language with persistence
+  // Global Language with persistence (Default: English)
   const [language, setLanguage] = useState<LanguageCode>(() => {
     try {
       const saved = localStorage.getItem('sk_tea_language');
@@ -46,7 +46,7 @@ export function App() {
     } catch (e) {
       // Ignore
     }
-    return 'roman-english';
+    return 'simple-english';
   });
 
   const handleLanguageChange = (newLang: LanguageCode) => {
@@ -58,7 +58,7 @@ export function App() {
     }
   };
 
-  const t = translations[language] || translations['roman-english'];
+  const t = translations[language] || translations['simple-english'];
 
   // Active View / Page
   const [currentView, setCurrentView] = useState<NavItemId>('home');

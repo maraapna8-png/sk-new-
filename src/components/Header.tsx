@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const t = translations[language] || translations['roman-english'];
+  const t = translations[language] || translations['simple-english'];
 
   // Handle outside clicks to close language dropdown
   useEffect(() => {
