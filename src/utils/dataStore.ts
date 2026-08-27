@@ -260,12 +260,12 @@ export function initLocalData() {
 
 // Calculate Total Weight in KG for items
 export function calculateOrderKg(items: OrderItemQuantities): number {
-  return (
-    (items['125g'] || 0) * PACK_CONFIGS['125g'].weightInKg +
-    (items['250g'] || 0) * PACK_CONFIGS['250g'].weightInKg +
-    (items['500g'] || 0) * PACK_CONFIGS['500g'].weightInKg +
-    (items['1kg'] || 0) * PACK_CONFIGS['1kg'].weightInKg
-  );
+  if (!items) return 0;
+  const q125 = Number(items['125g'] || 0);
+  const q250 = Number(items['250g'] || 0);
+  const q500 = Number(items['500g'] || 0);
+  const q1kg = Number(items['1kg'] || 0);
+  return Number((q125 * 0.125 + q250 * 0.25 + q500 * 0.5 + q1kg * 1.0).toFixed(3));
 }
 
 // Helper to calculate admin stats from orders
