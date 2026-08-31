@@ -45,7 +45,7 @@ export const FAQsPage: React.FC<FAQsPageProps> = ({
     },
     {
       q: 'What is the EasyPaisa number?',
-      a: 'The official EasyPaisa account number is 03449293698 registered under General Manager Muhammad Zeeshan.',
+      a: 'The official EasyPaisa account number is 03327223733 registered under General Manager Muhammad Zeeshan.',
       icon: Phone,
     },
     {

@@ -15,16 +15,16 @@ export const Logo: React.FC<LogoProps> = ({
   const isLight = variant === 'light';
 
   const sizeClasses = {
-    sm: { icon: 'w-8 h-8', text: 'text-lg', sub: 'text-[9px]' },
-    md: { icon: 'w-10 h-10', text: 'text-xl', sub: 'text-[10px]' },
-    lg: { icon: 'w-14 h-14', text: 'text-2xl sm:text-3xl', sub: 'text-xs' },
+    sm: { icon: 'w-7 h-7 sm:w-8 sm:h-8', text: 'text-base sm:text-lg', sub: 'text-[9px]' },
+    md: { icon: 'w-8 h-8 sm:w-10 sm:h-10', text: 'text-base sm:text-xl', sub: 'text-[10px]' },
+    lg: { icon: 'w-11 h-11 sm:w-14 sm:h-14', text: 'text-xl sm:text-3xl', sub: 'text-xs' },
   }[size];
 
   return (
-    <div id="sk-brand-logo" className="flex items-center gap-3 select-none">
+    <div id="sk-brand-logo" className="flex items-center gap-2 sm:gap-3 select-none">
       {/* Brand Icon Shield / Emblem */}
       <div
-        className={`relative flex items-center justify-center rounded-xl shadow-md transition-transform duration-300 hover:scale-105 ${
+        className={`relative flex items-center justify-center rounded-xl shadow-md transition-transform duration-300 hover:scale-105 shrink-0 ${
           sizeClasses.icon
         } ${
           isLight
@@ -112,7 +112,7 @@ export const Logo: React.FC<LogoProps> = ({
         </div>
         {showTagline && (
           <span
-            className={`font-medium tracking-tight ${
+            className={`hidden sm:block font-medium tracking-tight ${
               sizeClasses.sub
             } ${isLight ? 'text-white/80' : 'text-[#63756A]'}`}
           >

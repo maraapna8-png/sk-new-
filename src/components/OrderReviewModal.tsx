@@ -238,7 +238,7 @@ export const OrderReviewModal: React.FC<OrderReviewModalProps> = ({
               <div>
                 <div className="text-xs text-[#718096] font-semibold">Payment Mode:</div>
                 <div className="text-sm font-extrabold text-[#0F2A1E]">
-                  {paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'EasyPaisa to General Manager (03449293698)'}
+                  {paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'EasyPaisa to General Manager (03327223733)'}
                 </div>
               </div>
             </div>

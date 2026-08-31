@@ -784,7 +784,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 </h3>
                 <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E7DFD5] space-y-2 text-xs">
                   <div><strong>Owner:</strong> Muhammad Azam (03318701808)</div>
-                  <div><strong>GM & EasyPaisa:</strong> Muhammad Zeeshan (03449293698)</div>
+                  <div><strong>GM:</strong> Muhammad Zeeshan (03449293698) &bull; <strong>EasyPaisa:</strong> 03327223733</div>
                   <div><strong>Standard Pack Weights:</strong> 125g, 250g, 500g, 1 KG</div>
                 </div>
 

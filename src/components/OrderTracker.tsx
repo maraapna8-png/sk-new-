@@ -347,7 +347,7 @@ export const OrderTracker: React.FC<OrderTrackerProps> = ({
                   125g: <strong>{order.items['125g']}</strong> &bull; 250g: <strong>{order.items['250g']}</strong> &bull; 500g: <strong>{order.items['500g']}</strong> &bull; 1KG: <strong>{order.items['1kg']}</strong>
                 </div>
                 <div className="pt-1 text-[#5C6B64]">
-                  Payment: <strong>{order.paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'EasyPaisa to 03449293698'}</strong>
+                  Payment: <strong>{order.paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'EasyPaisa to 03327223733'}</strong>
                 </div>
               </div>
             </div>

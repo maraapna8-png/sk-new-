@@ -100,7 +100,7 @@ export const OrderConfirmation: React.FC<OrderConfirmationProps> = ({
               Payment & Destination:
             </div>
             <div className="font-bold text-[#0F2A1E]">
-              {order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'EasyPaisa (03449293698)'}
+              {order.paymentMethod === 'COD' ? 'Cash on Delivery' : 'EasyPaisa (03327223733)'}
             </div>
             <div className="text-[#5C6B64]">{order.city}</div>
             <div className="text-[11px] text-[#718096] truncate">{order.address}</div>

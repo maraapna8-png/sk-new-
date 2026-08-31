@@ -417,7 +417,7 @@ export function App() {
                       </a>
                     </div>
                     <div className="text-[11px] text-white/60">
-                      EasyPaisa Account: <strong>03449293698</strong>
+                      EasyPaisa Account: <strong>03327223733</strong>
                     </div>
                   </div>
                 </div>

@@ -121,7 +121,7 @@ export const PrintableBill: React.FC<PrintableBillProps> = ({ order, onBack }) =
             <div className="space-y-1 text-xs text-[#4A5568]">
               <div><strong>City / Area:</strong> <span className="font-bold text-[#0F2A1E]">{order.city}</span></div>
               <div><strong>Delivery Address:</strong> {order.address}</div>
-              <div><strong>Payment Mode:</strong> <span className="font-bold text-[#1A3D2F]">{order.paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'EasyPaisa to GM (03449293698)'}</span></div>
+              <div><strong>Payment Mode:</strong> <span className="font-bold text-[#1A3D2F]">{order.paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : 'EasyPaisa to GM (03327223733)'}</span></div>
               {order.notes && (
                 <div className="pt-1 italic text-[#5C6B64]"><strong>Notes:</strong> {order.notes}</div>
               )}

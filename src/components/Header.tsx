@@ -144,11 +144,11 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-1.5 sm:gap-4 h-16 sm:h-20">
           {/* Logo */}
           <div
-            className="cursor-pointer"
+            className="cursor-pointer shrink-0 select-none"
             onClick={() => handleNavClick('home')}
             id="nav-logo-btn"
           >
@@ -158,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Desktop Navigation Links */}
           <nav
             id="desktop-navigation"
-            className="hidden xl:flex items-center gap-1 bg-[#FAF6EE] p-1.5 rounded-full border border-[#EADFCF]"
+            className="hidden xl:flex items-center gap-1 bg-[#FAF6EE] p-1.5 rounded-full border border-[#EADFCF] shrink-0"
           >
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -168,7 +168,7 @@ export const Header: React.FC<HeaderProps> = ({
                   key={item.id}
                   id={`nav-link-${item.id}`}
                   onClick={() => handleNavClick(item.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer whitespace-nowrap ${
                     isActive
                       ? 'bg-[#1B3022] text-[#FDFBF7] shadow-xs'
                       : 'text-[#2C3E35] hover:text-[#1B3022] hover:bg-white/80'
@@ -181,20 +181,20 @@ export const Header: React.FC<HeaderProps> = ({
             })}
           </nav>
 
-          {/* Actions: Language Selector + Place Order CTA */}
-          <div className="flex items-center gap-3">
+          {/* Actions: Language Selector + Place Order CTA + Mobile Menu Button */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3 shrink-0">
             {/* Language Switcher */}
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative shrink-0" ref={dropdownRef}>
               <button
                 type="button"
                 id="language-selector-btn"
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-[#EADFCF] bg-white text-[#1B3022] hover:bg-[#FAF6EE] transition-colors shadow-2xs cursor-pointer active:scale-98"
+                className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-semibold border border-[#EADFCF] bg-white text-[#1B3022] hover:bg-[#FAF6EE] transition-colors shadow-2xs cursor-pointer active:scale-98 whitespace-nowrap shrink-0"
                 title="Change Website Language"
               >
-                <Globe className="w-3.5 h-3.5 text-[#C5A059]" />
-                <span>{currentLangMeta.label}</span>
-                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-[#1B3022]/10 text-[#1B3022]">
+                <Globe className="w-3.5 h-3.5 text-[#C5A059] shrink-0" />
+                <span className="hidden md:inline">{currentLangMeta.label}</span>
+                <span className="text-[10px] uppercase font-bold px-1 sm:px-1.5 py-0.5 rounded bg-[#1B3022]/10 text-[#1B3022]">
                   {currentLangMeta.badge}
                 </span>
               </button>
@@ -239,28 +239,34 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-place-order-btn"
               onClick={handleOrderClick}
-              className="relative inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs tracking-wide text-[#FDFBF7] bg-gradient-to-r from-[#1B3022] to-[#122218] border border-[#C5A059]/50 shadow-md hover:shadow-lg hover:from-[#122218] hover:to-[#0A160F] transition-all duration-200 active:scale-98 cursor-pointer"
+              className="relative inline-flex items-center justify-center gap-1 sm:gap-2 px-2.5 sm:px-4 md:px-5 py-1.5 sm:py-2.5 rounded-xl font-bold text-xs tracking-wide text-[#FDFBF7] bg-gradient-to-r from-[#1B3022] to-[#122218] border border-[#C5A059]/50 shadow-md hover:shadow-lg hover:from-[#122218] hover:to-[#0A160F] transition-all duration-200 active:scale-98 cursor-pointer whitespace-nowrap shrink-0"
             >
-              <ShoppingBag className="w-4 h-4 text-[#EAD59A]" />
-              <span>{t.navPlaceOrder}</span>
+              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#EAD59A] shrink-0" />
+              <span className="hidden sm:inline whitespace-nowrap">{t.navPlaceOrder}</span>
+              <span className="sm:hidden text-xs font-bold whitespace-nowrap">Order</span>
               {totalKg > 0 && (
                 <span
                   id="header-cart-badge"
-                  className="ml-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-[#C5A059] text-[#1B3022] shadow-xs"
+                  className="ml-0.5 sm:ml-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-extrabold bg-[#C5A059] text-[#1B3022] shadow-xs whitespace-nowrap"
                 >
-                  {totalKg} KG
+                  {totalKg}k
                 </span>
               )}
             </button>
 
-            {/* Mobile Hamburger Toggle */}
+            {/* Mobile 3-Lines Hamburger Toggle (Always Visible on Mobile) */}
             <button
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-2 rounded-xl text-[#1B3022] hover:bg-[#FAF6EE] border border-[#EADFCF] transition-colors cursor-pointer"
+              className="xl:hidden shrink-0 p-1.5 sm:p-2 rounded-xl text-[#1B3022] bg-[#FAF6EE] hover:bg-[#EADFCF] border border-[#EADFCF] transition-colors cursor-pointer flex items-center justify-center shadow-2xs"
               aria-label="Toggle Menu"
+              title="Toggle Menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5 text-[#1B3022]" />
+              ) : (
+                <Menu className="w-5 h-5 text-[#1B3022]" />
+              )}
             </button>
           </div>
         </div>
