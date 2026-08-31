@@ -23,6 +23,8 @@ import { OrderConfirmation } from './components/OrderConfirmation';
 import { AdminPortal } from './components/AdminPortal';
 import { Logo } from './components/Logo';
 import { fetchAllOrders } from './utils/dataStore';
+import { collection, query, orderBy, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import { db } from './firebase';
 import {
   Phone,
   MessageSquare,
@@ -82,19 +84,51 @@ export function App() {
   // Direct WhatsApp Modal State
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
-  // Load initial orders from server / local storage
+  // Real-time Firestore listener for orders collection across all connected devices
   useEffect(() => {
-    const loadInitialOrders = async () => {
-      try {
-        const orders = await fetchAllOrders();
+    let unsubscribe: Unsubscribe | null = null;
+    try {
+      const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const liveOrders: Order[] = [];
+            snapshot.forEach((docSnap) => {
+              liveOrders.push(docSnap.data() as Order);
+            });
+            setOrderHistory(liveOrders);
+          } else {
+            fetchAllOrders().then((orders) => {
+              if (orders && Array.isArray(orders)) {
+                setOrderHistory(orders);
+              }
+            });
+          }
+        },
+        (error) => {
+          console.warn('Firestore real-time orders listener error:', error);
+          fetchAllOrders().then((orders) => {
+            if (orders && Array.isArray(orders)) {
+              setOrderHistory(orders);
+            }
+          });
+        }
+      );
+    } catch (e) {
+      console.warn('Could not initialize Firestore onSnapshot listener:', e);
+      fetchAllOrders().then((orders) => {
         if (orders && Array.isArray(orders)) {
           setOrderHistory(orders);
         }
-      } catch (e) {
-        console.warn('Could not load orders', e);
+      });
+    }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
       }
     };
-    loadInitialOrders();
   }, []);
 
   // Update pack quantity helpers

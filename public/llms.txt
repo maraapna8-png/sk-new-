@@ -36,5 +36,5 @@
 
 ## Full Documentation & Context
 For comprehensive brand history, FAQ answers, and brewing recommendations, see:
-- [Full LLM Context File](https://skteacompany.com/llms-full.txt)
-- [Website](https://skteacompany.com/)
+- [Full LLM Context File](https://sk-tea-company.netlify.app/llms-full.txt)
+- [Website](https://sk-tea-company.netlify.app/)
