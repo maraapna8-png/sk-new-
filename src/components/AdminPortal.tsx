@@ -11,6 +11,9 @@ import {
   computeStats,
   updateOrderStatus,
   deleteOrder,
+  subscribeToOrders,
+  subscribeToCustomers,
+  subscribeToMessages,
   DEFAULT_ADMIN_PASSCODE,
 } from '../utils/dataStore';
 import {
@@ -361,6 +364,27 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   useEffect(() => {
     if (token) {
       checkTokenValidity(token);
+
+      // Subscribe to real-time cloud updates across all devices
+      const unsubOrders = subscribeToOrders((liveOrders) => {
+        setOrders(liveOrders);
+        setStats((prev) => computeStats(liveOrders, customers));
+      });
+
+      const unsubCustomers = subscribeToCustomers((liveCustomers) => {
+        setCustomers(liveCustomers);
+        setStats((prev) => computeStats(orders, liveCustomers));
+      });
+
+      const unsubMessages = subscribeToMessages((liveMessages) => {
+        setMessages(liveMessages);
+      });
+
+      return () => {
+        unsubOrders();
+        unsubCustomers();
+        unsubMessages();
+      };
     }
   }, [token]);
 
